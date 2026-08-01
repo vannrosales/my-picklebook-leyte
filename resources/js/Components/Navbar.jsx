@@ -9,7 +9,7 @@ export default function Navbar({ auth }) {
                 </span>
             </div>
             <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
-                <a href="#browse" className="text-black hover:text-[#22C55E] transition-colors duration-200">Browse Courts</a>
+                <a href="/browse-courts" className="text-black hover:text-[#22C55E] transition-colors duration-200">Browse Courts</a>
                 <a href="#subscription" className="hover:text-[#22C55E] transition-colors duration-200">Subscription</a>
             </nav>
             <div className="flex items-center gap-4">

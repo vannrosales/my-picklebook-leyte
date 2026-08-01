@@ -6,7 +6,7 @@ import TextInput from '@/Components/TextInput';
 import PrimaryButton from '@/Components/PrimaryButton';
 
 export default function Register() {
-    const [userType, setUserType] = useState('customer'); // matches enum values: 'customer' or 'court_owner'
+    const [userType, setUserType] = useState('customer'); 
 
     const { data, setData, post, processing, errors, reset } = useForm({
         fullname: '',
@@ -24,7 +24,7 @@ export default function Register() {
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('register'), {
+        post('/register', {
             onFinish: () => reset('password', 'password_confirmation'),
         });
     };
@@ -35,14 +35,35 @@ export default function Register() {
 
             {/* Clickable Brand Logo linking back to Welcome page */}
             <div className="text-center mb-6">
-                <Link href='/' className="inline-block">
+                <Link href='/welcome' className="inline-block">
                     <span className="text-xl font-bold text-[#22C55E] tracking-tight hover:opacity-90 transition-opacity">
                         PickleBook Leyte
                     </span>
                 </Link>
             </div>
 
-            
+            {/* Role Switcher Tabs (customer vs court_owner) */}
+            <div className="flex rounded-full bg-[#F8FAF6] p-1 mb-8 border border-gray-200">
+                <button
+                    type="button"
+                    onClick={() => handleRoleChange('customer', 'Customer')}
+                    className={`flex-1 rounded-full py-2 text-xs font-bold transition-all ${
+                        userType === 'Customer' ? 'bg-[#22C55E] text-white shadow-sm' : 'text-[#71796F] hover:text-gray-900'
+                    }`}
+                >
+                    Customer
+                </button>
+                <button
+                    type="button"
+                    onClick={() => handleRoleChange('court_owner', 'Court Owner')}
+                    className={`flex-1 rounded-full py-2 text-xs font-bold transition-all ${
+                        userType === 'Court Owner' ? 'bg-[#22C55E] text-white shadow-sm' : 'text-[#71796F] hover:text-gray-900'
+                    }`}
+                >
+                    Court Owner
+                </button>
+            </div>
+
             <div className="text-center mb-6">
                 <h2 className="text-2xl font-extrabold text-gray-900">Create Account</h2>
                 <p className="text-xs text-[#71796F] mt-1">
@@ -54,7 +75,7 @@ export default function Register() {
 
             {/* Sign In / Register sub-header switch */}
             <div className="flex gap-6 border-b border-gray-200 pb-3 mb-6 text-sm font-bold">
-                <Link href={route('login')} className="text-[#71796F] hover:text-gray-900 transition">SIGN IN</Link>
+                <Link href='/login' className="text-[#71796F] hover:text-gray-900 transition">SIGN IN</Link>
                 <span className="text-[#22C55E] border-b-2 border-[#22C55E] pb-3 -mb-3">REGISTER</span>
             </div>
 

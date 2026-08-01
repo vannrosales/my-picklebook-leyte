@@ -13,12 +13,23 @@ use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Http\Requests\Auth\RegisterRequest;
+use App\Services\AuthService;
+
 
 class RegisteredUserController extends Controller
 {
     /**
      * Display the registration view.
      */
+
+    protected AuthService $authService;
+
+    public function __construct(AuthService $authService)
+    {
+        $this->authService = $authService;
+    }
+
     public function create(): Response
     {
         return Inertia::render('Auth/Register');
@@ -29,24 +40,15 @@ class RegisteredUserController extends Controller
      *
      * @throws ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function store(RegisterRequest $request): RedirectResponse
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
+        $user = $this->authService->registerUser($request->validated());
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        // Redirect based on user role
+        if ($user->role === 'court_owner') {
+            return redirect()->route('dashboard'); 
+        }
 
-        event(new Registered($user));
-
-        Auth::login($user);
-
-        return redirect(route('dashboard', absolute: false));
+        return redirect()->route('player.dashboard'); 
     }
 }

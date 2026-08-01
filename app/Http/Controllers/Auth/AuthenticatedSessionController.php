@@ -10,12 +10,22 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Models\User;
+use App\Services\AuthService;
 
 class AuthenticatedSessionController extends Controller
 {
     /**
      * Display the login view.
      */
+
+    protected AuthService $authService;
+
+    public function __construct(AuthService $authService)
+    {
+        $this->authService = $authService;
+    }
+
     public function create(): Response
     {
         return Inertia::render('Auth/Login', [
@@ -33,7 +43,15 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        
+        $user = auth()->user();
+
+        
+        if ($user->role === 'court_owner') {
+            return redirect()->intended(route('dashboard', absolute: false));
+        }
+
+        return redirect()->intended(route('player.dashboard', absolute: false));
     }
 
     /**
