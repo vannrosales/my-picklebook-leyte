@@ -27,7 +27,7 @@ const plans = [
             { text: "Manage 1 court listing", included: true },
             { text: "Customer support", included: true }
         ],
-        buttonText: "Upgrade Now",
+        buttonText: "Get This Plan",
         buttonStyle: "bg-[#22C55E] hover:bg-[#1eb053] text-white"
     },
     {
@@ -175,10 +175,10 @@ export default function SubscriptionView({ auth, currentSubscription }) {
                         return (
                             <div 
                                 key={index}
-                                className={`rounded-3xl p-6 bg-white border flex flex-col justify-between relative overflow-hidden shadow-sm transition-all ${
+                                className={`rounded-3xl p-6 bg-white border flex flex-col justify-between relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
                                     plan.popular || isCurrentPlan 
-                                        ? 'border-[#22C55E] ring-2 ring-[#22C55E]/20' 
-                                        : 'border-gray-100'
+                                        ? 'border-[#22C55E] ring-2 ring-[#22C55E]/20 hover:border-[#22C55E]' 
+                                        : 'border-gray-100 hover:border-gray-300'
                                 }`}
                             >
                                 {plan.popular && !isCurrentPlan && (

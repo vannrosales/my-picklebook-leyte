@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-
 import BookingStats from '@/Components/CourtOwner/Bookings/BookingStats';
 import BookingRow from '@/Components/CourtOwner/Bookings/BookingRow';
 import BookingInsights from '@/Components/CourtOwner/Bookings/BookingInsights';
@@ -9,6 +8,10 @@ import BookingInsights from '@/Components/CourtOwner/Bookings/BookingInsights';
 export default function Bookings({ auth, bookings = [], insights = {}, stats = {} }) {
     const [activeTab, setActiveTab] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
+    
+    // Pagination states
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
 
     const tabs = ['All', 'Pending', 'Upcoming', 'Completed', 'Cancelled'];
 
@@ -29,6 +32,17 @@ export default function Bookings({ auth, bookings = [], insights = {}, stats = {
 
         return matchesTab && matchesSearch;
     });
+
+    // Handle pagination slices based on filtered results
+    const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedBookings = filteredBookings.slice(startIndex, startIndex + itemsPerPage);
+
+    const handlePageChange = (newPage) => {
+        if (newPage >= 1 && newPage <= totalPages) {
+            setCurrentPage(newPage);
+        }
+    };
 
     // Handlers for updating status via backend route (e.g., /bookings/{id}/status)
     const handleApprove = (bookingId) => {
@@ -100,7 +114,10 @@ export default function Bookings({ auth, bookings = [], insights = {}, stats = {
                             {tabs.map((tab) => (
                                 <button
                                     key={tab}
-                                    onClick={() => setActiveTab(tab)}
+                                    onClick={() => {
+                                        setActiveTab(tab);
+                                        setCurrentPage(1); // Reset page on tab switch
+                                    }}
                                     className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                                         activeTab === tab
                                             ? 'bg-[#1B6138] text-white shadow-sm'
@@ -117,7 +134,10 @@ export default function Bookings({ auth, bookings = [], insights = {}, stats = {
                                 <input 
                                     type="text" 
                                     value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onChange={(e) => {
+                                        setSearchQuery(e.target.value);
+                                        setCurrentPage(1); // Reset page on search
+                                    }}
                                     placeholder="Search customer or court..." 
                                     className="w-full sm:w-64 rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#22C55E]"
                                 />
@@ -127,8 +147,8 @@ export default function Bookings({ auth, bookings = [], insights = {}, stats = {
 
                     {/* Bookings List Rendered via BookingRow Component */}
                     <div className="space-y-4">
-                        {filteredBookings.length > 0 ? (
-                            filteredBookings.map((booking) => (
+                        {paginatedBookings.length > 0 ? (
+                            paginatedBookings.map((booking) => (
                                 <BookingRow 
                                     key={booking.id} 
                                     booking={formatBookingRowData(booking)} 
@@ -143,7 +163,40 @@ export default function Bookings({ auth, bookings = [], insights = {}, stats = {
                         )}
                     </div>
 
-                    <BookingInsights insights={insights} />
+                    {/* Pagination Controls Bar */}
+                    {totalPages > 1 && (
+                        <div className="flex flex-col sm:flex-row items-center justify-between bg-white px-6 py-4 rounded-2xl border border-gray-100 shadow-sm gap-4 mt-6">
+                            <span className="text-xs text-[#71796F]">
+                                Showing <span className="font-bold text-gray-900">{startIndex + 1}</span> to <span className="font-bold text-gray-900">{Math.min(startIndex + itemsPerPage, filteredBookings.length)}</span> of <span className="font-bold text-gray-900">{filteredBookings.length}</span> entries
+                            </span>
+
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => handlePageChange(currentPage - 1)}
+                                    disabled={currentPage === 1}
+                                    className="px-3.5 py-2 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                                >
+                                    Previous
+                                </button>
+
+                                <span className="text-xs font-bold text-gray-800 px-3">
+                                    Page {currentPage} of {totalPages}
+                                </span>
+
+                                <button
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                    disabled={currentPage === totalPages}
+                                    className="px-3.5 py-2 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="mt-8">
+                        <BookingInsights insights={insights} />
+                    </div>
 
                 </main>
             </div>

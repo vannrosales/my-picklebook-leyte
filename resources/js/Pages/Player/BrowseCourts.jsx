@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Head } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import PlayerSidebar from '@/Components/Player/PlayerSidebar';
 import PlayerBrowseHeader from '@/Components/Player/Browse/PlayerBrowseHeader';
 import PlayerCourtCard from '@/Components/Player/Browse/PlayerCourtCard';
 import BookingDrawer from '@/Components/Courts/BookingDrawer';

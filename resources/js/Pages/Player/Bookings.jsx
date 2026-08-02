@@ -1,6 +1,5 @@
 import { Head, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import PlayerSidebar from '@/Components/Player/PlayerSidebar'; 
 import { useState } from 'react';
 
 export default function PlayerBookings({ auth, bookings = [] }) {

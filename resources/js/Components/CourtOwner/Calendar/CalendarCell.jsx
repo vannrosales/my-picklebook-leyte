@@ -7,15 +7,17 @@ export default function CalendarCell({ cell }) {
     const hasBookings = bookings.length > 0;
 
     return (
-        <div className={`min-h-[130px] p-2 sm:p-3 flex flex-col transition-colors ${
-            hasBookings ? 'bg-[#F8FAF6]/60 hover:bg-[#E8F5E9]/20' : 'bg-white hover:bg-gray-50/50'
+        <div className={`min-h-[130px] p-2 sm:p-3 flex flex-col transition-colors border border-gray-100 ${
+            hasBookings 
+                ? 'bg-[#E8F5E9] hover:bg-[#d4edd6] border-[#22C55E]/30' 
+                : 'bg-white hover:bg-gray-50/50'
         }`}>
             <div className="flex items-center justify-between mb-1.5">
-                <span className={`text-xs font-extrabold ${hasBookings ? 'text-[#1B6138]' : 'text-gray-700'}`}>
+                <span className={`text-xs font-extrabold ${hasBookings ? 'text-[#144528]' : 'text-gray-700'}`}>
                     {dayNumber}
                 </span>
                 {hasBookings && (
-                    <span className="rounded-full bg-[#22C55E]/10 px-2 py-0.5 text-[9px] font-bold text-[#22C55E]">
+                    <span className="rounded-full bg-[#1B6138] text-white px-2 py-0.5 text-[9px] font-bold shadow-2xs">
                         {bookings.length} {bookings.length === 1 ? 'booking' : 'bookings'}
                     </span>
                 )}
@@ -33,7 +35,7 @@ export default function CalendarCell({ cell }) {
                     return (
                         <div 
                             key={b.id} 
-                            className="rounded-lg bg-white p-1.5 border border-[#22C55E]/20 shadow-2xs text-[10px] leading-tight"
+                            className="rounded-lg bg-white p-1.5 border border-[#1B6138]/20 shadow-2xs text-[10px] leading-tight"
                         >
                             <p className="font-extrabold text-gray-900 truncate">{customerName}</p>
                             <div className="flex items-center justify-between text-[#71796F] mt-0.5">

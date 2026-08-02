@@ -1,25 +1,13 @@
-import { useState, useEffect } from 'react';
-import { Head, useForm, usePage, router } from '@inertiajs/react';
+import { useState } from 'react';
+import { Head, useForm, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Sidebar from '@/Components/CourtOwner/Sidebar';
 import CourtStatsBar from '@/Components/CourtOwner/Courts/CourtStatsBar';
 import CourtCard from '@/Components/CourtOwner/Courts/CourtCard';
 
 export default function CourtListing({ auth, courts }) {
-    
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCourt, setEditingCourt] = useState(null);
-    
-    const { flash } = usePage().props;
-    const [showAlert, setShowAlert] = useState(false);
-
-    useEffect(() => {
-        if (flash?.success) {
-            setShowAlert(true);
-            const timer = setTimeout(() => setShowAlert(false), 4000);
-            return () => clearTimeout(timer);
-        }
-    }, [flash]);
 
     const { data, setData, post, put, processing, errors, reset } = useForm({
         name: '',
@@ -77,22 +65,8 @@ export default function CourtListing({ auth, courts }) {
             <Head title="Court Management - PickleBook Tacloban" />
 
             <div className="min-h-[calc(100vh-5rem)] bg-[#F8FAF6] text-[#71796F] font-sans flex relative">
-
-
                 <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full relative">
                     
-                    {showAlert && (
-                        <div className="mb-6 flex items-center justify-between rounded-2xl bg-[#E8F5E9] border border-[#22C55E]/30 p-4 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
-                            <div className="flex items-center gap-3">
-                                <div className="h-8 w-8 rounded-full bg-[#22C55E] text-white flex items-center justify-center font-bold text-xs shrink-0">✓</div>
-                                <span className="text-xs sm:text-sm font-extrabold text-[#1B6138]">{flash.success}</span>
-                            </div>
-                            <button onClick={() => setShowAlert(false)} className="text-[#1B6138] hover:text-gray-900 font-bold p-1">✕</button>
-                        </div>
-                    )}
-
-                    
-
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                         <div>
                             <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">Court Management</h1>

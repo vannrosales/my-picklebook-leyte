@@ -1,31 +1,51 @@
 import { useState, useEffect } from 'react';
 import { Head, useForm, usePage, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import Sidebar from '@/Components/CourtOwner/Sidebar';
+
+// Helper function: Converts 24-hour time ("14:30") to 12-hour object ({ time: "02:30", period: "PM" })
+const to12HourFormat = (time24) => {
+    if (!time24) return { time: '08:00', period: 'AM' };
+    let [hours, minutes] = time24.split(':');
+    let h = parseInt(hours, 10);
+    let period = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return {
+        time: `${String(h).padStart(2, '0')}:${minutes || '00'}`,
+        period: period
+    };
+};
+
+// Helper function: Converts 12-hour state back to 24-hour string ("14:30") for backend submission
+const to24HourFormat = (time12, period) => {
+    if (!time12) return '08:00';
+    let [h, m] = time12.split(':');
+    let hours = parseInt(h, 10);
+    if (period === 'PM' && hours < 12) hours += 12;
+    if (period === 'AM' && hours === 12) hours = 0;
+    return `${String(hours).padStart(2, '0')}:${m || '00'}`;
+};
 
 export default function Schedules({ auth, courts, selectedCourtId, daysOfWeek, schedules }) {
     
     const [currentCourtId, setCurrentCourtId] = useState(selectedCourtId || courts[0]?.id || '');
-    
-    const { flash } = usePage().props;
-    const [showAlert, setShowAlert] = useState(false);
 
-    useEffect(() => {
-        if (flash?.success) {
-            setShowAlert(true);
-            const timer = setTimeout(() => setShowAlert(false), 4000);
-            return () => clearTimeout(timer);
-        }
-    }, [flash]);
 
-    // Initialize form state for all 7 days of the week
+    // Initialize form state for all 7 days with 12-hour structured values
     const initialSchedulesState = daysOfWeek.reduce((acc, day) => {
         const existing = schedules[day];
+        const open24 = existing ? existing.opening_time.slice(0, 5) : '08:00';
+        const close24 = existing ? existing.closing_time.slice(0, 5) : '22:00';
+        
+        const open12 = to12HourFormat(open24);
+        const close12 = to12HourFormat(close24);
+
         acc[day] = {
             day_of_week: day,
             is_open: !!existing,
-            opening_time: existing ? existing.opening_time.slice(0, 5) : '08:00',
-            closing_time: existing ? existing.closing_time.slice(0, 5) : '22:00',
+            opening_time: open12.time,
+            opening_period: open12.period,
+            closing_time: close12.time,
+            closing_period: close12.period,
         };
         return acc;
     }, {});
@@ -52,7 +72,7 @@ export default function Schedules({ auth, courts, selectedCourtId, daysOfWeek, s
         });
     };
 
-    const handleTimeChange = (day, field, value) => {
+    const handleTimeFieldChange = (day, field, value) => {
         setData('schedules', {
             ...data.schedules,
             [day]: {
@@ -64,7 +84,24 @@ export default function Schedules({ auth, courts, selectedCourtId, daysOfWeek, s
 
     const submitSchedules = (e) => {
         e.preventDefault();
+
+        // Format data back to 24-hour strings before dispatching payload to backend
+        const formattedSchedules = {};
+        Object.keys(data.schedules).forEach((day) => {
+            const item = data.schedules[day];
+            formattedSchedules[day] = {
+                day_of_week: item.day_of_week,
+                is_open: item.is_open,
+                opening_time: to24HourFormat(item.opening_time, item.opening_period),
+                closing_time: to24HourFormat(item.closing_time, item.closing_period),
+            };
+        });
+
         post(route('court.schedules.store'), {
+            data: {
+                court_id: data.court_id,
+                schedules: formattedSchedules,
+            },
             preserveScroll: true,
         });
     };
@@ -76,18 +113,6 @@ export default function Schedules({ auth, courts, selectedCourtId, daysOfWeek, s
             <div className="min-h-[calc(100vh-5rem)] bg-[#F8FAF6] text-[#71796F] font-sans flex relative">
 
                 <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto w-full relative">
-                    
-                    {/* Flash Success Banner */}
-                    {showAlert && (
-                        <div className="mb-6 flex items-center justify-between rounded-2xl bg-[#E8F5E9] border border-[#22C55E]/30 p-4 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
-                            <div className="flex items-center gap-3">
-                                <div className="h-8 w-8 rounded-full bg-[#22C55E] text-white flex items-center justify-center font-bold text-xs shrink-0">✓</div>
-                                <span className="text-xs sm:text-sm font-extrabold text-[#1B6138]">{flash.success}</span>
-                            </div>
-                            <button onClick={() => setShowAlert(false)} className="text-[#1B6138] hover:text-gray-900 font-bold p-1">✕</button>
-                        </div>
-                    )}
-
                     
                     {/* Page Header */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
@@ -117,7 +142,7 @@ export default function Schedules({ auth, courts, selectedCourtId, daysOfWeek, s
                         <form onSubmit={submitSchedules} className="space-y-4">
                             <div className="rounded-2xl bg-white shadow-sm border border-gray-100 overflow-hidden">
                                 <div className="p-6 border-b border-gray-100">
-                                    <h3 className="font-extrabold text-gray-900 tracking-tight">Weekly Hours Template</h3>
+                                    <h3 className="font-extrabold text-gray-900 tracking-tight">Weekly Hours Template (12-Hour Format)</h3>
                                     <p className="text-xs text-[#71796F] mt-0.5">Slots will automatically generate based on these opening and closing times.</p>
                                 </div>
 
@@ -142,27 +167,51 @@ export default function Schedules({ auth, courts, selectedCourtId, daysOfWeek, s
                                                     </span>
                                                 </div>
 
-                                                {/* Opening and Closing Time Pickers */}
+                                                {/* Opening and Closing Time Pickers with AM/PM */}
                                                 {dayConfig.is_open ? (
                                                     <div className="flex items-center gap-3">
+                                                        {/* Opening Time Box */}
                                                         <div>
                                                             <span className="block text-[9px] font-bold uppercase text-[#71796F] mb-0.5">Opening</span>
-                                                            <input 
-                                                                type="time" 
-                                                                value={dayConfig.opening_time}
-                                                                onChange={(e) => handleTimeChange(day, 'opening_time', e.target.value)}
-                                                                className="rounded-xl border border-gray-200 px-3 py-1.5 text-xs font-semibold focus:ring-2 focus:ring-[#22C55E] focus:outline-none"
-                                                            />
+                                                            <div className="flex items-center gap-1">
+                                                                <input 
+                                                                    type="time" 
+                                                                    value={dayConfig.opening_time}
+                                                                    onChange={(e) => handleTimeFieldChange(day, 'opening_time', e.target.value)}
+                                                                    className="rounded-xl border border-gray-200 px-3 py-1.5 text-xs font-semibold focus:ring-2 focus:ring-[#22C55E] focus:outline-none"
+                                                                />
+                                                                <select
+                                                                    value={dayConfig.opening_period}
+                                                                    onChange={(e) => handleTimeFieldChange(day, 'opening_period', e.target.value)}
+                                                                    className="rounded-xl border border-gray-200 px-2 py-1.5 text-xs font-semibold bg-white focus:ring-2 focus:ring-[#22C55E] focus:outline-none"
+                                                                >
+                                                                    <option value="AM">AM</option>
+                                                                    <option value="PM">PM</option>
+                                                                </select>
+                                                            </div>
                                                         </div>
+
                                                         <span className="text-gray-400 mt-4">to</span>
+
+                                                        {/* Closing Time Box */}
                                                         <div>
                                                             <span className="block text-[9px] font-bold uppercase text-[#71796F] mb-0.5">Closing</span>
-                                                            <input 
-                                                                type="time" 
-                                                                value={dayConfig.closing_time}
-                                                                onChange={(e) => handleTimeChange(day, 'closing_time', e.target.value)}
-                                                                className="rounded-xl border border-gray-200 px-3 py-1.5 text-xs font-semibold focus:ring-2 focus:ring-[#22C55E] focus:outline-none"
-                                                            />
+                                                            <div className="flex items-center gap-1">
+                                                                <input 
+                                                                    type="time" 
+                                                                    value={dayConfig.closing_time}
+                                                                    onChange={(e) => handleTimeFieldChange(day, 'closing_time', e.target.value)}
+                                                                    className="rounded-xl border border-gray-200 px-3 py-1.5 text-xs font-semibold focus:ring-2 focus:ring-[#22C55E] focus:outline-none"
+                                                                />
+                                                                <select
+                                                                    value={dayConfig.closing_period}
+                                                                    onChange={(e) => handleTimeFieldChange(day, 'closing_period', e.target.value)}
+                                                                    className="rounded-xl border border-gray-200 px-2 py-1.5 text-xs font-semibold bg-white focus:ring-2 focus:ring-[#22C55E] focus:outline-none"
+                                                                >
+                                                                    <option value="AM">AM</option>
+                                                                    <option value="PM">PM</option>
+                                                                </select>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 ) : (

@@ -2,6 +2,16 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useForm } from '@inertiajs/react';
 
+// Helper function to convert 24-hour time to 12-hour AM/PM format
+const formatTo12Hour = (timeString) => {
+    if (!timeString) return '';
+    const [hourStr, minuteStr] = timeString.split(':');
+    let hour = parseInt(hourStr, 10);
+    const period = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12 || 12; // Convert 0 to 12 for midnight
+    return `${String(hour).padStart(2, '0')}:${minuteStr} ${period}`;
+};
+
 export default function BookingDrawer({ court, onClose }) {
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const [slots, setSlots] = useState([]);
@@ -78,6 +88,9 @@ export default function BookingDrawer({ court, onClose }) {
                             <div className="grid grid-cols-2 gap-2">
                                 {slots.map((slot) => {
                                     const isSelected = selectedSlot?.id === slot.id;
+                                    const startTime12 = formatTo12Hour(slot.start_time.slice(0, 5));
+                                    const endTime12 = formatTo12Hour(slot.end_time.slice(0, 5));
+
                                     return (
                                         <button
                                             key={slot.id}
@@ -92,7 +105,7 @@ export default function BookingDrawer({ court, onClose }) {
                                                         : 'bg-white text-gray-800 border-gray-200 hover:border-[#22C55E]'
                                             }`}
                                         >
-                                            {slot.start_time.slice(0, 5)} - {slot.end_time.slice(0, 5)}
+                                            {startTime12} - {endTime12}
                                             {slot.is_booked && <span className="block text-[9px] uppercase tracking-wider text-red-500 font-semibold mt-0.5">Booked</span>}
                                         </button>
                                     );

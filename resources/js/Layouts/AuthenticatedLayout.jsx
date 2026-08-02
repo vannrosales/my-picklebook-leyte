@@ -4,6 +4,7 @@ import Dropdown from '@/Components/Dropdown';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import Sidebar from '@/Components/CourtOwner/Sidebar';
 import PlayerSidebar from '@/Components/Player/PlayerSidebar';
+import Alert from '@/Components/Alert';
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
@@ -164,6 +165,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             </div>
                         </header>
                     )}
+                    <Alert flash={usePage().props.flash} />
                     <main className="flex-1">{children}</main>
                 </div>
             </div>
