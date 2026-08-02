@@ -6,11 +6,12 @@ import StatsOverview from '@/Components/CourtOwner/StatsOverview';
 import RecentActivityTable from '@/Components/CourtOwner/RecentActivityTable';
 import CourtStatusWidget from '@/Components/CourtOwner/CourtStatusWidget';
 
-export default function Dashboard({ auth }) {
+export default function Dashboard({ recentBookings = [], stats = {} , courts = [] }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
+    
     return (
         <AuthenticatedLayout>
+            
             <Head title="Court Owner Dashboard" />
 
             <div className="min-h-[calc(100vh-5rem)] bg-[#F8FAF6] text-[#71796F] font-sans flex relative">
@@ -47,15 +48,15 @@ export default function Dashboard({ auth }) {
                     </div>
 
                     {/* Stats Overview Cards Component */}
-                    <StatsOverview />
+                    <StatsOverview stats={stats}/>
 
                     {/* Grid Layout for Table and Status Widget */}
                     <div className="grid gap-8 lg:grid-cols-3">
                         <div className="lg:col-span-2 overflow-x-auto">
-                            <RecentActivityTable />
+                            <RecentActivityTable bookings={recentBookings} />
                         </div>
                         <div>
-                            <CourtStatusWidget />
+                            <CourtStatusWidget courts={courts}/>
                         </div>
                     </div>
 

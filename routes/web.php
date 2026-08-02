@@ -8,6 +8,7 @@ use App\Http\Controllers\SubscriptionController;
 use App\Http\Middleware\EnsureOwnerIsSubscribed; 
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CourtOwnerDashboardController;
 use Inertia\Inertia;
 
 // Public Welcome Page
@@ -44,12 +45,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('Player/Dashboard');
     })->name('player.dashboard');
 
+    Route::get('/dashboard', [CourtOwnerDashboardController::class, 'index'])->name('dashboard');
+
     Route::get('/player/bookings', [BookingController::class, 'playerIndex'])->name('player.bookings');
     Route::delete('/player/bookings/{booking}', [BookingController::class, 'destroyBooking'])->name('player.bookings.destroy');
 
     // Subscription Management (Unrestricted so unsubscribed owners can pay)
     Route::get('/owner/subscription', [SubscriptionController::class, 'create'])->name('owner.subscription.create');
     Route::post('/owner/subscription', [SubscriptionController::class, 'store'])->name('owner.subscription.store');
+    
 
     // Protected Court Owner Routes (Requires Active Subscription Class)
     Route::middleware([EnsureOwnerIsSubscribed::class])->group(function () {
