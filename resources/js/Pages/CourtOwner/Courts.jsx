@@ -6,7 +6,7 @@ import CourtStatsBar from '@/Components/CourtOwner/Courts/CourtStatsBar';
 import CourtCard from '@/Components/CourtOwner/Courts/CourtCard';
 
 export default function CourtListing({ auth, courts }) {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCourt, setEditingCourt] = useState(null);
     
@@ -77,7 +77,7 @@ export default function CourtListing({ auth, courts }) {
             <Head title="Court Management - PickleBook Tacloban" />
 
             <div className="min-h-[calc(100vh-5rem)] bg-[#F8FAF6] text-[#71796F] font-sans flex relative">
-                <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+
 
                 <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full relative">
                     
@@ -91,11 +91,7 @@ export default function CourtListing({ auth, courts }) {
                         </div>
                     )}
 
-                    <div className="mb-4 md:hidden">
-                        <button onClick={() => setIsSidebarOpen(true)} className="flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-gray-800 shadow-sm border border-gray-200">
-                            <span>☰</span> Open Menu
-                        </button>
-                    </div>
+                    
 
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                         <div>

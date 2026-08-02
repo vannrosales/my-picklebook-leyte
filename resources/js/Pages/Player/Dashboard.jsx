@@ -9,7 +9,7 @@ import QuickBookCard from '@/Components/Player/QuickBookCard';
 import ProProgressCard from '@/Components/Player/ProProgressCard';
 
 export default function PlayerDashboard({ auth }) {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    
     const userName = auth.user?.fullname || auth.user?.name || 'Carlos';
 
     return (
@@ -18,22 +18,12 @@ export default function PlayerDashboard({ auth }) {
 
             <div className="min-h-[calc(100vh-5rem)] bg-[#F8FAF6] text-[#71796F] font-sans flex relative">
                 
-                {/* Player Center Sidebar Component with Drawer Controls */}
-                <PlayerSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+                
 
                 {/* Main Content Area */}
                 <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto overflow-x-hidden w-full">
                     
-                    {/* Mobile Menu Toggle Button */}
-                    <div className="mb-4 md:hidden">
-                        <button 
-                            onClick={() => setIsSidebarOpen(true)}
-                            className="flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-gray-800 shadow-sm border border-gray-200"
-                        >
-                            <span>☰</span> Open Player Menu
-                        </button>
-                    </div>
-
+                   
                     {/* Greeting Header */}
                     <div className="mb-8">
                         <h1 className="text-xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">

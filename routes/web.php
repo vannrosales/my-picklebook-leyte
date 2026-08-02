@@ -21,63 +21,52 @@ Route::get('/', function () {
     ]);
 })->name('welcome');
 
-// Public Court Browse & Booking Preview Routes
-Route::get('/browse-courts', [CourtController::class, 'browse'])->name('courts.browse');
+// Public Guest Routes (Preview only)
 Route::get('/public/courts', [CourtController::class, 'publicIndex'])->name('courts.public.index');
-Route::get('/courts/{court}/slots', [BookingController::class, 'getAvailableSlots'])->name('courts.slots');
 
 // Authenticated & Verified Routes Group
 Route::middleware(['auth', 'verified'])->group(function () {
-    
-    // Court Owner Dashboard
-    Route::get('/dashboard', function () {
-        if (auth()->user()->role === 'customer') {
-            return redirect()->route('player.dashboard');
-        }
-        return Inertia::render('Dashboard');
-    })->name('dashboard');
 
-    // Player / Customer Dashboard
-    Route::get('/player-dashboard', function () {
-        if (auth()->user()->role === 'court_owner') {
-            return redirect()->route('dashboard');
-        }
-        return Inertia::render('Player/Dashboard');
-    })->name('player.dashboard');
-
-    Route::get('/dashboard', [CourtOwnerDashboardController::class, 'index'])->name('dashboard');
-
-    Route::get('/player/bookings', [BookingController::class, 'playerIndex'])->name('player.bookings');
-    Route::delete('/player/bookings/{booking}', [BookingController::class, 'destroyBooking'])->name('player.bookings.destroy');
-
-    // Subscription Management (Unrestricted so unsubscribed owners can pay)
-    Route::get('/owner/subscription', [SubscriptionController::class, 'create'])->name('owner.subscription.create');
-    Route::post('/owner/subscription', [SubscriptionController::class, 'store'])->name('owner.subscription.store');
-    
-
-    // Protected Court Owner Routes (Requires Active Subscription Class)
-    Route::middleware([EnsureOwnerIsSubscribed::class])->group(function () {
-        Route::get('/court/bookings', function () {
-            if (auth()->user()->role === 'customer') {
-                return redirect()->route('player.dashboard');
-            }
-            return Inertia::render('CourtOwner/Bookings');
-        })->name('court.bookings');
-
-        Route::get('/court/listings', [CourtController::class, 'index'])->name('court.listings');
-        Route::post('/court/listings', [CourtController::class, 'store'])->name('court.store');
-        Route::put('/court/listings/{court}', [CourtController::class, 'update'])->name('court.update');
-        Route::delete('/court/listings/{court}', [CourtController::class, 'destroy'])->name('court.destroy');
-        
-        Route::get('/court/schedules', [CourtScheduleController::class, 'index'])->name('court.schedules');
-        Route::post('/court/schedules', [CourtScheduleController::class, 'storeOrUpdate'])->name('court.schedules.store');
+    // ==========================================
+    // 1. CUSTOMER / PLAYER EXCLUSIVE ROUTES
+    // ==========================================
+    Route::middleware(['role:customer'])->group(function () {
+        Route::get('/player-dashboard', fn () => Inertia::render('Player/Dashboard'))->name('player.dashboard');
+        Route::get('/browse-courts', [CourtController::class, 'browse'])->name('courts.browse');
+        Route::get('/courts/{court}/slots', [BookingController::class, 'getAvailableSlots'])->name('courts.slots');
+        Route::get('/player/bookings', [BookingController::class, 'playerIndex'])->name('player.bookings');
+        Route::delete('/player/bookings/{booking}', [BookingController::class, 'destroyBooking'])->name('player.bookings.destroy');
+        Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
     });
-    
-    // Submit final booking (Requires authentication)
-    Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
+
+    // ==========================================
+    // 2. COURT OWNER EXCLUSIVE ROUTES
+    // ==========================================
+    Route::middleware(['role:court_owner'])->group(function () {
+        
+        // Unrestricted owner routes (like subscription payment creation)
+        Route::get('/owner/subscription', [SubscriptionController::class, 'create'])->name('owner.subscription.create');
+        Route::post('/owner/subscription', [SubscriptionController::class, 'store'])->name('owner.subscription.store');
+        Route::get('/owner/subscription/view', [SubscriptionController::class, 'show'])->name('owner.subscription.show');
+
+        // Protected Court Owner Routes (Requires Active Subscription)
+        Route::middleware([EnsureOwnerIsSubscribed::class])->group(function () {
+            Route::get('/dashboard', [CourtOwnerDashboardController::class, 'index'])->name('dashboard');
+            Route::get('/court/bookings', [CourtOwnerDashboardController::class, 'bookingsIndex'])->name('court.bookings');
+            Route::get('/court/calendar', [CourtOwnerDashboardController::class, 'calendarIndex'])->name('court.calendar');
+
+            Route::get('/court/listings', [CourtController::class, 'index'])->name('court.listings');
+            Route::post('/court/listings', [CourtController::class, 'store'])->name('court.store');
+            Route::put('/court/listings/{court}', [CourtController::class, 'update'])->name('court.update');
+            Route::delete('/court/listings/{court}', [CourtController::class, 'destroy'])->name('court.destroy');
+            
+            Route::get('/court/schedules', [CourtScheduleController::class, 'index'])->name('court.schedules');
+            Route::post('/court/schedules', [CourtScheduleController::class, 'storeOrUpdate'])->name('court.schedules.store');
+        });
+    });
 });
 
-// Profile Management Routes
+// Profile Management Routes (Accessible by both roles)
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

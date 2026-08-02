@@ -4,7 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Sidebar from '@/Components/CourtOwner/Sidebar';
 
 export default function Schedules({ auth, courts, selectedCourtId, daysOfWeek, schedules }) {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    
     const [currentCourtId, setCurrentCourtId] = useState(selectedCourtId || courts[0]?.id || '');
     
     const { flash } = usePage().props;
@@ -74,7 +74,6 @@ export default function Schedules({ auth, courts, selectedCourtId, daysOfWeek, s
             <Head title="Court Schedules - PickleBook Tacloban" />
 
             <div className="min-h-[calc(100vh-5rem)] bg-[#F8FAF6] text-[#71796F] font-sans flex relative">
-                <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
                 <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto w-full relative">
                     
@@ -89,12 +88,7 @@ export default function Schedules({ auth, courts, selectedCourtId, daysOfWeek, s
                         </div>
                     )}
 
-                    <div className="mb-4 md:hidden">
-                        <button onClick={() => setIsSidebarOpen(true)} className="flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-gray-800 shadow-sm border border-gray-200">
-                            <span>☰</span> Open Menu
-                        </button>
-                    </div>
-
+                    
                     {/* Page Header */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                         <div>

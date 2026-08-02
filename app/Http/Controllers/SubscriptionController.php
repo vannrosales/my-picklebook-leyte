@@ -43,4 +43,12 @@ class SubscriptionController extends Controller
 
         return redirect()->route('court.listings')->with('success', 'Subscription activated successfully!');
     }
+    public function show()
+    {
+        $subscription = auth()->user()->subscription()->latest()->first();
+
+        return Inertia::render('CourtOwner/SubscriptionView', [
+            'currentSubscription' => $subscription,
+        ]);
+    }
 }

@@ -5,7 +5,7 @@ import { useState } from 'react';
 
 export default function PlayerBookings({ auth, bookings = [] }) {
     const [filter, setFilter] = useState('all');
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    
 
     const filteredBookings = bookings.filter((booking) => {
         if (filter === 'upcoming') return booking.status === 'confirmed' || booking.status === 'pending';
@@ -35,25 +35,12 @@ export default function PlayerBookings({ auth, bookings = [] }) {
 
             <div className="flex min-h-[calc(100vh-5rem)] bg-[#F8FAF6] text-[#71796F] font-sans">
                 
-                {/* Sidebar Component */}
-                <PlayerSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+                
 
                 {/* Main Content Area */}
                 <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
                     
-                    {/* Mobile Header Toggle Bar */}
-                    <div className="md:hidden flex items-center justify-between p-4 bg-white border-b border-gray-100">
-                        <span className="text-xs font-bold uppercase tracking-wider text-[#22C55E]">Player Portal</span>
-                        <button 
-                            onClick={() => setIsSidebarOpen(true)}
-                            className="p-2 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100"
-                        >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"></path>
-                            </svg>
-                        </button>
-                    </div>
-
+                    
                     <div className="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl w-full mx-auto">
                         
                         {/* Header Section */}

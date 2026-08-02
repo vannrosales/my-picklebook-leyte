@@ -1,4 +1,8 @@
-export default function BookingInsights() {
+export default function BookingInsights({ insights = {} }) {
+    const popularCourt = insights.popularCourt || 'Your Court';
+    const pendingCount = insights.pendingCount || 0;
+    const upcomingSlots = insights.upcomingSlots || [];
+
     return (
         <div className="grid gap-6 lg:grid-cols-3 mt-8">
             
@@ -9,18 +13,20 @@ export default function BookingInsights() {
                         QUICK SUMMARY
                     </span>
                     <h3 className="text-xl sm:text-2xl font-extrabold text-[#1B6138] tracking-tight">
-                        Court #02 is in high demand
+                        {popularCourt} is in high demand
                     </h3>
                     <p className="text-xs text-[#527960] mt-2 leading-relaxed max-w-xl">
-                        Three overlapping requests detected for the 6 PM slot. Consider opening Court #05 for backup to maximize revenue.
+                        {pendingCount > 0 
+                            ? `You have ${pendingCount} pending booking requests waiting for confirmation. Review them to maximize facility revenue.`
+                            : `All recent schedules are running smoothly with steady activity across your active facilities.`}
                     </p>
                 </div>
                 
                 <div className="mt-6">
-                    <button className="text-xs font-bold text-[#1B6138] hover:underline flex items-center gap-1.5 transition-transform duration-200 hover:translate-x-1">
-                        <span>View Conflicts</span>
+                    <a href={route('court.bookings')} className="text-xs font-bold text-[#1B6138] hover:underline flex items-center gap-1.5 transition-transform duration-200 hover:translate-x-1">
+                        <span>View All Bookings</span>
                         <span>→</span>
-                    </button>
+                    </a>
                 </div>
             </div>
 
@@ -29,24 +35,29 @@ export default function BookingInsights() {
                 <div>
                     <h4 className="font-bold text-gray-900 mb-4">Upcoming Slots</h4>
                     <div className="space-y-3">
-                        <div className="flex items-center justify-between border-b border-gray-100 pb-2.5">
-                            <span className="text-xs font-bold text-gray-700">08:00 PM</span>
-                            <span className="rounded-full bg-[#E8F5E9] px-2.5 py-0.5 text-[9px] font-bold text-[#1B6138]">AVAILABLE</span>
-                        </div>
-                        <div className="flex items-center justify-between border-b border-gray-100 pb-2.5">
-                            <span className="text-xs font-bold text-gray-700">09:00 PM</span>
-                            <span className="rounded-full bg-[#E8F5E9] px-2.5 py-0.5 text-[9px] font-bold text-[#1B6138]">AVAILABLE</span>
-                        </div>
-                        <div className="flex items-center justify-between pb-1">
-                            <span className="text-xs font-bold text-gray-700">10:00 PM</span>
-                            <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-[9px] font-bold text-gray-500">CLOSED</span>
-                        </div>
+                        {upcomingSlots.length > 0 ? (
+                            upcomingSlots.map((slot) => {
+                                const isBooked = slot.is_booked;
+                                return (
+                                    <div key={slot.id} className="flex items-center justify-between border-b border-gray-100 pb-2.5 last:border-none last:pb-1">
+                                        <span className="text-xs font-bold text-gray-700">{slot.start_time}</span>
+                                        <span className={`rounded-full px-2.5 py-0.5 text-[9px] font-bold ${
+                                            isBooked ? 'bg-rose-50 text-rose-600' : 'bg-[#E8F5E9] text-[#1B6138]'
+                                        }`}>
+                                            {isBooked ? 'BOOKED' : 'AVAILABLE'}
+                                        </span>
+                                    </div>
+                                );
+                            })
+                        ) : (
+                            <p className="text-xs text-[#71796F] text-center py-4">No upcoming slots found.</p>
+                        )}
                     </div>
                 </div>
 
-                <button className="mt-6 w-full rounded-xl bg-gray-900 py-2.5 text-xs font-bold text-white hover:bg-gray-800 hover:shadow-md transition-all duration-200">
+                <a href={route('court.schedules')} className="mt-6 block text-center rounded-xl bg-gray-900 py-2.5 text-xs font-bold text-white hover:bg-gray-800 hover:shadow-md transition-all duration-200">
                     MANAGE CALENDAR
-                </button>
+                </a>
             </div>
 
         </div>

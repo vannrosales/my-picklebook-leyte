@@ -41,9 +41,17 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    public function subscription()
+    {
+        return $this->hasOne(Subscription::class, 'owner_id', 'id');
+    }
+
+    /**
+     * Get all subscription records for the court owner.
+     */
     public function subscriptions()
     {
-        return $this->hasMany(Subscription::class, 'owner_id');
+        return $this->hasMany(Subscription::class, 'owner_id', 'id');
     }
     public function courts()
     {

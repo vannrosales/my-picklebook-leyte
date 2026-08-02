@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->alias([
             'subscribed' => \App\Http\Middleware\EnsureOwnerIsSubscribed::class,
+            'role' => \App\Http\Middleware\CheckUserRole::class,
         ]);
 
         //

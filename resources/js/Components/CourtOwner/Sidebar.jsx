@@ -90,6 +90,21 @@ export default function Sidebar({ isOpen, onClose }) {
                             Schedules
                         </Link>
 
+                        {/* Calendar Tab */}
+                        <Link 
+                            href={route('court.calendar')} 
+                            className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-200 group ${
+                                route().current('court.calendar') 
+                                    ? 'bg-[#22C55E] text-white shadow-sm scale-[1.02]' 
+                                    : 'text-[#71796F] hover:bg-white hover:text-gray-900 hover:shadow-xs hover:translate-x-1'
+                            }`}
+                        >
+                            <svg className="w-5 h-5 fill-none stroke-current transition-transform duration-200 group-hover:scale-110" strokeWidth="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008z"></path>
+                            </svg>
+                            Calendar
+                        </Link>
+
                         {/* Setup Link */}
                         <a href="#" className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[#71796F] hover:bg-white hover:text-gray-900 hover:shadow-xs hover:translate-x-1 transition-all duration-200 group">
                             <svg className="w-5 h-5 fill-none stroke-current transition-transform duration-200 group-hover:scale-110" strokeWidth="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -107,20 +122,6 @@ export default function Sidebar({ isOpen, onClose }) {
                             Payouts
                         </a>
                     </nav>
-                </div>
-
-                <div className="border-t border-gray-200 pt-4">
-                    <Link
-                        href={route('logout')}
-                        method="post"
-                        as="button"
-                        className="flex items-center gap-2 text-xs font-semibold text-red-500 hover:text-red-700 hover:translate-x-1 transition-all duration-200 w-full text-left"
-                    >
-                        <svg className="w-4 h-4 fill-none stroke-current" strokeWidth="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"></path>
-                        </svg>
-                        Sign Out
-                    </Link>
                 </div>
             </aside>
         </>
