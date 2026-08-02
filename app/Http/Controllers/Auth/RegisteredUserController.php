@@ -40,15 +40,38 @@ class RegisteredUserController extends Controller
      *
      * @throws ValidationException
      */
-    public function store(RegisterRequest $request): RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
-        $user = $this->authService->registerUser($request->validated());
+        $request->validate([
+            'fullname' => 'required|string|max:255',
+            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'phone_number' => 'nullable|string|max:20',
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'role' => 'required|in:customer,court_owner,admin', 
+        ]);
 
-        // Redirect based on user role
+        $user = User::create([
+            'fullname' => $request->fullname,
+            'email' => $request->email,
+            'phone_number' => $request->phone_number,
+            'password' => Hash::make($request->password),
+            'role' => $request->role,
+        ]);
+
+        event(new Registered($user));
+
+        Auth::login($user);
+
+        // If they registered as a court owner, redirect them straight to choose a subscription plan!
         if ($user->role === 'court_owner') {
-            return redirect()->route('dashboard'); 
+            return redirect()->route('owner.subscription.create');
         }
 
-        return redirect()->route('player.dashboard'); 
+        // If admin or customer, route them accordingly
+        if ($user->role === 'customer') {
+            return redirect(route('player.dashboard', absolute: false));
+        }
+
+        return redirect(route('dashboard', absolute: false));
     }
 }

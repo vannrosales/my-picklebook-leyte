@@ -28,12 +28,20 @@ class HandleInertiaRequests extends Middleware
      * @return array<string, mixed>
      */
     public function share(Request $request): array
-    {
-        return [
-            ...parent::share($request),
-            'auth' => [
-                'user' => $request->user(),
-            ],
-        ];
+{
+    $user = $request->user();
+    $hasActiveSubscription = false;
+
+    if ($user && $user->role === 'owner') {
+        $hasActiveSubscription = $user->subscriptions()->where('status', 'active')->exists();
     }
+
+    return [
+        ...parent::share($request),
+        'auth' => [
+            'user' => $user,
+            'has_active_subscription' => $hasActiveSubscription,
+        ],
+    ];
+}
 }

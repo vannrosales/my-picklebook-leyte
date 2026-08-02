@@ -5,19 +5,11 @@ import Footer from '@/Components/Footer';
 import CourtCardBrowse from '@/Components/Courts/CourtCardBrowse';
 import BookingDrawer from '@/Components/Courts/BookingDrawer';
 
-export default function Browse({ auth }) {
+export default function Browse({ auth, courts }) {
     const [selectedCourt, setSelectedCourt] = useState(null);
     const [activeFilter, setActiveFilter] = useState('All Courts');
 
-    const courts = [
-        { name: 'Pickleball Hub Tacloban', type: 'Indoor', location: 'Tacloban Bypass Road, Tacloban City', price: '₱350', rating: '4.9', img: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&w=600&q=80' },
-        { name: 'EVRGC Court', type: 'Outdoor', location: 'Real Street Extension, Tacloban City', price: '₱280', rating: '4.7', img: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=600&q=80' },
-        { name: 'Downtown Smash Arena', type: 'Prime Indoor', location: 'Downtown, Tacloban City', price: '₱400', rating: '4.9', img: 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?auto=format&fit=crop&w=600&q=80' },
-        { name: 'Leyte Sports Complex', type: 'Outdoor', location: 'Sta. Cruz, Tacloban City', price: '₱250', rating: '4.5', img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=600&q=80' },
-        { name: 'V&G Community Court', type: 'Outdoor', location: 'V&G Subdivision, Tacloban City', price: '₱250', rating: '4.6', img: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=600&q=80' },
-        { name: 'San Jose Smash', type: 'Indoor', location: 'San Jose, Tacloban City', price: '₱320', rating: '4.8', img: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=600&q=80' },
-    ];
-
+    // Filter dynamic courts from the database
     const filteredCourts = activeFilter === 'All Courts' 
         ? courts 
         : courts.filter(c => c.type.toLowerCase().includes(activeFilter.toLowerCase()));
@@ -44,7 +36,7 @@ export default function Browse({ auth }) {
 
                         {/* Filter Badges */}
                         <div className="flex flex-wrap items-center gap-2">
-                            {['All Courts', 'Indoor', 'Outdoor', 'Prime Indoor'].map((filter) => (
+                            {['All Courts', 'Indoor', 'Outdoor', 'Prime'].map((filter) => (
                                 <button
                                     key={filter}
                                     onClick={() => setActiveFilter(filter)}
@@ -60,16 +52,23 @@ export default function Browse({ auth }) {
                         </div>
                     </div>
 
-                    {/* Courts Grid */}
-                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                        {filteredCourts.map((court, idx) => (
-                            <CourtCardBrowse 
-                                key={idx} 
-                                court={court} 
-                                onSelect={(selected) => setSelectedCourt(selected)} 
-                            />
-                        ))}
-                    </div>
+                    {/* Courts Grid from Database */}
+                    {filteredCourts.length > 0 ? (
+                        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                            {filteredCourts.map((court) => (
+                                <CourtCardBrowse 
+                                    key={court.id} 
+                                    court={court} 
+                                    onSelect={(selected) => setSelectedCourt(selected)} 
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="rounded-2xl bg-white p-12 text-center border border-gray-100 shadow-sm">
+                            <p className="text-sm font-semibold text-gray-700">No courts found matching this filter.</p>
+                            <p className="text-xs text-[#71796F] mt-1">Check back later or try a different filter category.</p>
+                        </div>
+                    )}
 
                 </main>
 

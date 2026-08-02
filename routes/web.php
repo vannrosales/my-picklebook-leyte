@@ -1,10 +1,16 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\CourtController;
+use App\Http\Controllers\CourtScheduleController;
+use App\Http\Controllers\BookingController;
+use App\Http\Controllers\SubscriptionController;
+use App\Http\Middleware\EnsureOwnerIsSubscribed; 
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+// Public Welcome Page
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
@@ -14,14 +20,13 @@ Route::get('/', function () {
     ]);
 })->name('welcome');
 
-Route::get('/browse-courts', function () {
-    return Inertia::render('Courts/Browse');
-})->name('courts.browse');
+// Public Court Browse Page
+Route::get('/browse-courts', [CourtController::class, 'browse'])->name('courts.browse');
 
 // Authenticated & Verified Routes Group
 Route::middleware(['auth', 'verified'])->group(function () {
     
-    // Court Owner Only Dashboard
+    // Court Owner Dashboard
     Route::get('/dashboard', function () {
         if (auth()->user()->role === 'customer') {
             return redirect()->route('player.dashboard');
@@ -29,14 +34,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('Dashboard');
     })->name('dashboard');
 
-    Route::get('/court/bookings', function () {
-        if (auth()->user()->role === 'customer') {
-            return redirect()->route('player.dashboard');
-        }
-        return Inertia::render('CourtOwner/Bookings');
-    })->name('court.bookings');
-
-    // Player / Customer Only Dashboard
+    // Player / Customer Dashboard
     Route::get('/player-dashboard', function () {
         if (auth()->user()->role === 'court_owner') {
             return redirect()->route('dashboard');
@@ -44,8 +42,36 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('Player/Dashboard');
     })->name('player.dashboard');
 
+    // Subscription Management (Unrestricted so unsubscribed owners can pay)
+    Route::get('/owner/subscription', [SubscriptionController::class, 'create'])->name('owner.subscription.create');
+    Route::post('/owner/subscription', [SubscriptionController::class, 'store'])->name('owner.subscription.store');
+
+    // Protected Court Owner Routes (Requires Active Subscription Class)
+    Route::middleware([EnsureOwnerIsSubscribed::class])->group(function () {
+        Route::get('/court/bookings', function () {
+            if (auth()->user()->role === 'customer') {
+                return redirect()->route('player.dashboard');
+            }
+            return Inertia::render('CourtOwner/Bookings');
+        })->name('court.bookings');
+
+        Route::get('/court/listings', [CourtController::class, 'index'])->name('court.listings');
+        Route::post('/court/listings', [CourtController::class, 'store'])->name('court.store');
+        Route::put('/court/listings/{court}', [CourtController::class, 'update'])->name('court.update');
+        Route::delete('/court/listings/{court}', [CourtController::class, 'destroy'])->name('court.destroy');
+        
+        Route::get('/court/schedules', [CourtScheduleController::class, 'index'])->name('court.schedules');
+        Route::post('/court/schedules', [CourtScheduleController::class, 'storeOrUpdate'])->name('court.schedules.store');
+    });
+
+    // Fetch live slots dynamically for a court & date
+    Route::get('/courts/{court}/slots', [BookingController::class, 'getAvailableSlots'])->name('courts.slots');
+    
+    // Submit final booking
+    Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
 });
 
+// Profile Management Routes
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
