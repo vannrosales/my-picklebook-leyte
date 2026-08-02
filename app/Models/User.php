@@ -12,6 +12,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Subscription;
 use App\Models\Court;
+use App\Models\Booking; 
 
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
@@ -47,5 +48,10 @@ class User extends Authenticatable
     public function courts()
     {
         return $this->hasMany(Court::class, 'owner_id');
+    }
+
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class, 'customer_id');
     }
 }

@@ -20,8 +20,10 @@ Route::get('/', function () {
     ]);
 })->name('welcome');
 
-// Public Court Browse Page
+// Public Court Browse & Booking Preview Routes
 Route::get('/browse-courts', [CourtController::class, 'browse'])->name('courts.browse');
+Route::get('/public/courts', [CourtController::class, 'publicIndex'])->name('courts.public.index');
+Route::get('/courts/{court}/slots', [BookingController::class, 'getAvailableSlots'])->name('courts.slots');
 
 // Authenticated & Verified Routes Group
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -41,6 +43,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         }
         return Inertia::render('Player/Dashboard');
     })->name('player.dashboard');
+
+    Route::get('/player/bookings', [BookingController::class, 'playerIndex'])->name('player.bookings');
+    Route::delete('/player/bookings/{booking}', [BookingController::class, 'destroyBooking'])->name('player.bookings.destroy');
 
     // Subscription Management (Unrestricted so unsubscribed owners can pay)
     Route::get('/owner/subscription', [SubscriptionController::class, 'create'])->name('owner.subscription.create');
@@ -63,11 +68,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/court/schedules', [CourtScheduleController::class, 'index'])->name('court.schedules');
         Route::post('/court/schedules', [CourtScheduleController::class, 'storeOrUpdate'])->name('court.schedules.store');
     });
-
-    // Fetch live slots dynamically for a court & date
-    Route::get('/courts/{court}/slots', [BookingController::class, 'getAvailableSlots'])->name('courts.slots');
     
-    // Submit final booking
+    // Submit final booking (Requires authentication)
     Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
 });
 

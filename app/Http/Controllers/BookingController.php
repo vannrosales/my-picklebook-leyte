@@ -113,4 +113,55 @@ class BookingController extends Controller
 
         return redirect()->route('courts.browse')->with('success', 'Court booked successfully!');
     }
+
+    public function playerIndex()
+    {
+        
+        $bookings = auth()->user()->bookings()
+            ->with(['court', 'timeSlot']) 
+            ->latest()
+            ->get();
+
+        return Inertia::render('Player/Bookings', [
+            'bookings' => $bookings
+        ]);
+    }
+
+    public function destroyBooking($id)
+    {
+        
+        $booking = Booking::where('id', $id)
+            ->where('customer_id', auth()->id())
+            ->firstOrFail();
+
+        
+        if (in_array($booking->status, ['cancelled', 'completed'])) {
+            return back()->with('error', 'This booking can no longer be cancelled.');
+        }
+
+        try {
+            DB::transaction(function () use ($booking) {
+                // 1. Mark the booking as cancelled
+                $booking->update(['status' => 'cancelled']);
+
+                // 2. Release the corresponding time slot back to available (is_booked = 0)
+                if ($booking->time_slot_id) {
+                    \App\Models\TimeSlot::where('id', $booking->time_slot_id)->update(['is_booked' => 0]);
+                } 
+                
+                // Fallback: If your app tracks slots via schedule/date/time columns directly instead of a time_slot_id
+                elseif (isset($booking->court_id, $booking->booking_date, $booking->start_time)) {
+                    \App\Models\CourtSchedule::where('court_id', $booking->court_id)
+                        ->where('date', $booking->booking_date)
+                        ->where('start_time', $booking->start_time)
+                        ->update(['is_booked' => 0]);
+                }
+            });
+
+            return back()->with('success', 'Booking cancelled successfully. The court slot is now open for other players.');
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to cancel the booking. Please try again later.');
+        }
+    }
 }
