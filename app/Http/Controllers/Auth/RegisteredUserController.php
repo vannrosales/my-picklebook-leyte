@@ -62,12 +62,12 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        // If they registered as a court owner, redirect them straight to choose a subscription plan!
+        
         if ($user->role === 'court_owner') {
             return redirect()->route('owner.subscription.create');
         }
 
-        // If admin or customer, route them accordingly
+        
         if ($user->role === 'customer') {
             return redirect(route('player.dashboard', absolute: false));
         }

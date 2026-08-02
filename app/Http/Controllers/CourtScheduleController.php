@@ -2,69 +2,49 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Court;
-use App\Models\CourtSchedule;
+use App\Http\Requests\StoreCourtScheduleRequest;
+use App\Services\CourtScheduleService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Response;
 use Inertia\Inertia;
 
 class CourtScheduleController extends Controller
 {
-    
-    public function index(Request $request)
+    protected CourtScheduleService $scheduleService;
+
+    public function __construct(CourtScheduleService $scheduleService)
+    {
+        $this->scheduleService = $scheduleService;
+    }
+
+    /**
+     * Display the operating schedules management page for the owner's courts.
+     */
+    public function index(Request $request): Response
     {
         $ownerId = auth()->id();
-        $courts = Court::where('owner_id', $ownerId)->get();
-        
-        $selectedCourtId = $request->input('court_id', $courts->first()?->id);
-        
-        $schedules = [];
-        if ($selectedCourtId) {
-            $schedules = CourtSchedule::where('court_id', $selectedCourtId)->get()->keyBy('day_of_week');
-        }
+        $selectedCourtId = $request->input('court_id');
 
-        $daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        $data = $this->scheduleService->getScheduleManagementData($ownerId, $selectedCourtId);
 
         return Inertia::render('CourtOwner/Schedules', [
-            'courts' => $courts,
-            'selectedCourtId' => $selectedCourtId,
-            'daysOfWeek' => $daysOfWeek,
-            'schedules' => $schedules,
+            'courts' => $data['courts'],
+            'selectedCourtId' => $data['selectedCourtId'],
+            'daysOfWeek' => $data['daysOfWeek'],
+            'schedules' => $data['schedules'],
         ]);
     }
 
-    
-    public function storeOrUpdate(Request $request)
+    /**
+     * Store or update operating schedules for a specific court.
+     */
+    public function storeOrUpdate(StoreCourtScheduleRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'court_id' => 'required|exists:courts,id',
-            'schedules' => 'required|array',
-            'schedules.*.day_of_week' => 'required|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
-            'schedules.*.is_open' => 'required|boolean',
-            'schedules.*.opening_time' => 'nullable|required_if:schedules.*.is_open,true|date_format:H:i',
-            'schedules.*.closing_time' => 'nullable|required_if:schedules.*.is_open,true|date_format:H:i|after:schedules.*.opening_time',
-        ]);
-
-        $courtId = $validated['court_id'];
-
-        foreach ($validated['schedules'] as $dayData) {
-            if ($dayData['is_open']) {
-                CourtSchedule::updateOrCreate(
-                    [
-                        'court_id' => $courtId,
-                        'day_of_week' => $dayData['day_of_week'],
-                    ],
-                    [
-                        'opening_time' => $dayData['opening_time'],
-                        'closing_time' => $dayData['closing_time'],
-                    ]
-                );
-            } else {
-                
-                CourtSchedule::where('court_id', $courtId)
-                    ->where('day_of_week', $dayData['day_of_week'])
-                    ->delete();
-            }
-        }
+        $this->scheduleService->saveSchedules(
+            $request->validated('court_id'),
+            $request->validated('schedules')
+        );
 
         return redirect()->back()->with('success', 'Operating schedules updated successfully!');
     }
