@@ -89,6 +89,7 @@ class DashboardService
         $revenueProjection = $bookings->whereIn('status', ['confirmed', 'completed'])->sum('total_amount');
 
         $upcomingSlots = TimeSlot::whereIn('court_id', $courtIds)
+            ->with('court') 
             ->orderBy('start_time', 'asc')
             ->take(3)
             ->get();
@@ -103,7 +104,6 @@ class DashboardService
             'upcomingSlots' => $upcomingSlots,
         ];
     }
-
     /**
      * Aggregate all data required for the calendar schedule page.
      */

@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import Sidebar from '@/Components/CourtOwner/Sidebar';
 import CourtStatsBar from '@/Components/CourtOwner/Courts/CourtStatsBar';
 import CourtCard from '@/Components/CourtOwner/Courts/CourtCard';
+import CourtModal from '@/Components/CourtOwner/Courts/CourtModal';
 
 export default function CourtListing({ auth, courts }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -37,20 +37,17 @@ export default function CourtListing({ auth, courts }) {
 
     const submitForm = (e) => {
         e.preventDefault();
+        const options = {
+            onSuccess: () => {
+                reset();
+                setIsModalOpen(false);
+            },
+        };
+
         if (editingCourt) {
-            put(route('court.update', editingCourt.id), {
-                onSuccess: () => {
-                    reset();
-                    setIsModalOpen(false);
-                },
-            });
+            put(route('court.update', editingCourt.id), options);
         } else {
-            post(route('court.store'), {
-                onSuccess: () => {
-                    reset();
-                    setIsModalOpen(false);
-                },
-            });
+            post(route('court.store'), options);
         }
     };
 
@@ -67,6 +64,7 @@ export default function CourtListing({ auth, courts }) {
             <div className="min-h-[calc(100vh-5rem)] bg-[#F8FAF6] text-[#71796F] font-sans flex relative">
                 <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full relative">
                     
+                    {/* Header */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                         <div>
                             <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">Court Management</h1>
@@ -100,89 +98,17 @@ export default function CourtListing({ auth, courts }) {
                 </main>
             </div>
 
-            {/* Modal Form for Adding / Editing a Court */}
-            {isModalOpen && (
-                <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-gray-100 animate-in fade-in zoom-in duration-200">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-extrabold text-gray-900">{editingCourt ? 'Edit Court' : 'Add New Court'}</h3>
-                            <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 font-bold">✕</button>
-                        </div>
-
-                        <form onSubmit={submitForm} className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-bold uppercase text-gray-700 mb-1">Court Name</label>
-                                <input 
-                                    type="text" 
-                                    value={data.name} 
-                                    onChange={e => setData('name', e.target.value)}
-                                    placeholder="e.g., Court A (Indoor)" 
-                                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#22C55E] focus:outline-none"
-                                />
-                                {errors.name && <span className="text-xs text-red-500 mt-1 block">{errors.name}</span>}
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold uppercase text-gray-700 mb-1">Surface Type</label>
-                                <input 
-                                    type="text" 
-                                    value={data.surface_type} 
-                                    onChange={e => setData('surface_type', e.target.value)}
-                                    placeholder="e.g., Indoor Acrylic, Concrete" 
-                                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#22C55E] focus:outline-none"
-                                />
-                                {errors.surface_type && <span className="text-xs text-red-500 mt-1 block">{errors.surface_type}</span>}
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold uppercase text-gray-700 mb-1">Hourly Rate (₱)</label>
-                                <input 
-                                    type="number" 
-                                    step="0.01"
-                                    value={data.hourly_rate} 
-                                    onChange={e => setData('hourly_rate', e.target.value)}
-                                    placeholder="800.00" 
-                                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#22C55E] focus:outline-none"
-                                />
-                                {errors.hourly_rate && <span className="text-xs text-red-500 mt-1 block">{errors.hourly_rate}</span>}
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold uppercase text-gray-700 mb-1">Status</label>
-                                <select 
-                                    value={data.status} 
-                                    onChange={e => setData('status', e.target.value)}
-                                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#22C55E] focus:outline-none bg-white"
-                                >
-                                    <option value="available">Available / Ready</option>
-                                    <option value="maintenance">Maintenance</option>
-                                    <option value="closed">Closed</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold uppercase text-gray-700 mb-1">Description (Optional)</label>
-                                <textarea 
-                                    value={data.description} 
-                                    onChange={e => setData('description', e.target.value)}
-                                    placeholder="Brief amenities or lighting notes..." 
-                                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#22C55E] focus:outline-none"
-                                    rows="2"
-                                ></textarea>
-                            </div>
-
-                            <div className="flex justify-end gap-3 pt-2">
-                                <button type="button" onClick={() => setIsModalOpen(false)} className="rounded-xl border border-gray-200 px-4 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-50">
-                                    Cancel
-                                </button>
-                                <button type="submit" disabled={processing} className="rounded-xl bg-[#1B6138] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#154d2c] transition shadow-sm disabled:opacity-50">
-                                    {processing ? 'Saving...' : (editingCourt ? 'Update Court' : 'Save Court')}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+            {/* Modal Component */}
+            <CourtModal 
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                editingCourt={editingCourt}
+                data={data}
+                setData={setData}
+                errors={errors}
+                processing={processing}
+                onSubmit={submitForm}
+            />
         </AuthenticatedLayout>
     );
 }

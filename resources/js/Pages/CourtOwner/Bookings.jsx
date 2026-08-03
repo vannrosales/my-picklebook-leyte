@@ -4,6 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import BookingStats from '@/Components/CourtOwner/Bookings/BookingStats';
 import BookingRow from '@/Components/CourtOwner/Bookings/BookingRow';
 import BookingInsights from '@/Components/CourtOwner/Bookings/BookingInsights';
+import { formatBookingRowData } from '@/utils/bookingFormatters';
 
 export default function Bookings({ auth, bookings = [], insights = {}, stats = {} }) {
     const [activeTab, setActiveTab] = useState('All');
@@ -44,7 +45,7 @@ export default function Bookings({ auth, bookings = [], insights = {}, stats = {
         }
     };
 
-    // Handlers for updating status via backend route (e.g., /bookings/{id}/status)
+    // Handlers for updating status via backend route
     const handleApprove = (bookingId) => {
         router.put(route('bookings.update-status', bookingId), { status: 'confirmed' }, {
             preserveScroll: true,
@@ -57,52 +58,13 @@ export default function Bookings({ auth, bookings = [], insights = {}, stats = {
         });
     };
 
-    const formatBookingRowData = (booking) => {
-        const customerName = booking.customer?.fullname || booking.customer?.name || 'Guest User';
-        const initials = customerName.split(' ').map(n => n[0]).join('').substring(0, 2);
-        const courtName = booking.court?.name || 'Assigned Court';
-        const startTime = booking.time_slot?.start_time || booking.start_time || 'N/A';
-        const endTime = booking.time_slot?.end_time || booking.end_time || '';
-        const timeStr = endTime ? `${startTime} - ${endTime}` : startTime;
-        const rawStatus = (booking.status || 'pending').toUpperCase();
-
-        let statusText = rawStatus;
-        let statusColor = 'bg-[#FEF3C7] text-[#B45309]';
-
-        if (rawStatus === 'CONFIRMED') {
-            statusText = 'CONFIRMED';
-            statusColor = 'bg-[#E8F5E9] text-[#1B6138]';
-        } else if (rawStatus === 'COMPLETED') {
-            statusText = 'COMPLETED';
-            statusColor = 'bg-blue-50 text-blue-600';
-        } else if (rawStatus === 'CANCELLED') {
-            statusText = 'CANCELLED';
-            statusColor = 'bg-rose-50 text-rose-600';
-        }
-
-        return {
-            id: booking.id,
-            avatar: initials,
-            name: customerName,
-            membership: `₱${Number(booking.total_amount || 0).toLocaleString()} • Total`,
-            time: timeStr,
-            date: new Date(booking.created_at).toLocaleDateString(),
-            court: courtName,
-            status: statusText,
-            statusColor: statusColor
-        };
-    };
-
     return (
         <AuthenticatedLayout user={auth?.user}>
             <Head title="Booking Management - Court Owner" />
 
             <div className="min-h-[calc(100vh-5rem)] bg-[#F8FAF6] text-[#71796F] font-sans flex relative">
-                
-
                 <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
                     
-
                     <div className="mb-8">
                         <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">Booking Management</h1>
                     </div>
@@ -116,7 +78,7 @@ export default function Bookings({ auth, bookings = [], insights = {}, stats = {
                                     key={tab}
                                     onClick={() => {
                                         setActiveTab(tab);
-                                        setCurrentPage(1); // Reset page on tab switch
+                                        setCurrentPage(1);
                                     }}
                                     className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                                         activeTab === tab
@@ -136,7 +98,7 @@ export default function Bookings({ auth, bookings = [], insights = {}, stats = {
                                     value={searchQuery}
                                     onChange={(e) => {
                                         setSearchQuery(e.target.value);
-                                        setCurrentPage(1); // Reset page on search
+                                        setCurrentPage(1);
                                     }}
                                     placeholder="Search customer or court..." 
                                     className="w-full sm:w-64 rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#22C55E]"
